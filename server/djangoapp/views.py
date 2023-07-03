@@ -3,7 +3,9 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
 # from .models import related models
+from .models import CarDealer, DealerReview
 # from .restapis import related methods
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -79,16 +81,42 @@ def registration_request(request):
 
 # Update the `get_dealerships` view to render the index page with a list of dealerships
 def get_dealerships(request):
-    context = {}
     if request.method == "GET":
-        return render(request, 'djangoapp/index.html', context)
+        url = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/get-dealership"
+        # Get dealers from the URL
+        dealerships = get_dealers_from_cf(url)
+        # Concat all dealer's short name
+        dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
+        # Return a list of dealer short name
+        return HttpResponse(dealer_names)
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
 # def get_dealer_details(request, dealer_id):
 # ...
 
+def get_dealer_details(request, dealer_id):
+    if request.method == "GET":
+        url = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/get-review"
+        reviews = get_dealer_reviews_from_cf(url, id=dealer_id)
+        review_contents = ' '.join(review.review for review in reviews)
+        return HttpResponse(review_contents)
+
 # Create a `add_review` view to submit a review
 # def add_review(request, dealer_id):
 # ...
 
+def add_review(request, dealer_id):
+    if User.is_authenticated():
+        if request.method == "POST":
+            url = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/post-review"
+            review = dict()
+            review["time"] = datetime.utcnow().isoformat()
+            review["name"] = "Garred Murphy"
+            review["dealership"] = 11
+            review["review"] = "This is a great car dealer"
+            review["purchase"] = False
+            json_payload = dict()
+            json_payload["review"] = review
+            response = post_request(url, json_payload, id=dealer_id)
+            return HttpResponse(response)
