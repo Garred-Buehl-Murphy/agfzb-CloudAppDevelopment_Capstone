@@ -82,13 +82,23 @@ def registration_request(request):
 # Update the `get_dealerships` view to render the index page with a list of dealerships
 def get_dealerships(request):
     if request.method == "GET":
+        st = request.GET.get("st")
+        dealer_id = request.GET.get("id")
         url = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/get-dealership"
         # Get dealers from the URL
-        dealerships = get_dealers_from_cf(url)
+        if st:
+            dealerships = get_dealers_from_cf(url, st=st)
+        elif dealer_id:
+            dealerships = get_dealers_from_cf(url, id=dealer_id)
+        else:
+            dealerships = get_dealers_from_cf(url)
         # Concat all dealer's short name
-        dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
+        # dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
         # Return a list of dealer short name
-        return HttpResponse(dealer_names)
+        # return HttpResponse(dealer_names)
+        context = dict()
+        context["dealerships"] = dealerships        
+        return render(request, 'djangoapp/index.html', context)
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
@@ -107,7 +117,7 @@ def get_dealer_details(request, dealer_id):
 # ...
 
 def add_review(request, dealer_id):
-    if User.is_authenticated():
+    if request.user.is_authenticated:
         if request.method == "POST":
             url = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/post-review"
             review = dict()
