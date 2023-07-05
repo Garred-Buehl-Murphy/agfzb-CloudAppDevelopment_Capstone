@@ -89,7 +89,7 @@ def get_dealerships(request):
         if st:
             dealerships = get_dealers_from_cf(url, st=st)
         elif dealer_id:
-            dealerships = get_dealers_from_cf(url, id=dealer_id)
+            dealerships = get_dealers_from_cf(url, dealer_id=dealer_id)
         else:
             dealerships = get_dealers_from_cf(url)
         # Concat all dealer's short name
@@ -108,11 +108,13 @@ def get_dealerships(request):
 def get_dealer_details(request, dealer_id):
     if request.method == "GET":
         url = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/get-review"
-        reviews = get_dealer_reviews_from_cf(url, id=dealer_id)
-        
+        reviews = get_dealer_reviews_from_cf(url, dealer_id=dealer_id)
+        url2 = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/get-dealership"
+        dealer = get_dealers_from_cf(url2, dealer_id=dealer_id)
         context = dict()
-        context["dealer_id"] = dealer_id
         context["reviews"] = reviews
+        context["dealer"] = dealer
+        context["dealer_id"] = dealer_id
         return render(request, 'djangoapp/dealer_details.html', context)
 
 # Create a `add_review` view to submit a review

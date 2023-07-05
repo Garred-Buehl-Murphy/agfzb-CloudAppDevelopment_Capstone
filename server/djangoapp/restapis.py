@@ -58,8 +58,16 @@ def post_request(url, json_payload, **kwargs):
 def get_dealers_from_cf(url, **kwargs):
     results = []
     st = kwargs.get("st")
+    dealer_id = kwargs.get("dealer_id")
     # Call get_request with a URL parameter
-    if st:
+    if dealer_id:
+        json_result = get_request(url, id=dealer_id)
+        dealer = json_result[0]
+        return CarDealer (address=dealer["address"], city=dealer["city"], full_name=dealer["full_name"],
+                        id=dealer["id"], lat=dealer["lat"], long=dealer["long"],
+                        short_name=dealer["short_name"],
+                        st=dealer["st"], zip=dealer["zip"])
+    elif st:
         json_result = get_request(url, st=st)
     else:
         json_result = get_request(url)
@@ -85,9 +93,9 @@ def get_dealers_from_cf(url, **kwargs):
 # - Parse JSON results into a DealerView object list
 def get_dealer_reviews_from_cf(url, **kwargs):
     results = []
-    id = kwargs.get("id")
-    if id:
-        json_result = get_request(url, id=id)
+    dealer_id = kwargs.get("dealer_id")
+    if dealer_id:
+        json_result = get_request(url, id=dealer_id)
     else:
         json_result = get_request(url)
     if json_result:
