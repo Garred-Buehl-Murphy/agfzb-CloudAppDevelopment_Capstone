@@ -3,7 +3,10 @@ import json
 # import related models here
 from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
-
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_watson.natural_language_understanding_v1 import Features,SentimentOptions
+import time
 
 # Create a `get_request` to make HTTP GET requests
 # e.g., response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
@@ -90,22 +93,21 @@ def get_dealer_reviews_from_cf(url, **kwargs):
     if json_result:
         reviews = json_result["data"]["docs"]
         for review in reviews:
-            review_doc = review
-            review_obj = DealerReview(dealership=review_doc["dealership"], name=review_doc["name"], purchase=review_doc["purchase"],
-                                   review=review_doc["review"])
 
-            if "purchase_date" in review_doc:
-                review_obj.purchase_date = review_doc["purchase_date"]
-            if "car_make" in review_doc:
-                review_obj.car_make = review_doc["car_make"]
-            if "car_model" in review_doc:
-                review_obj.car_model = review_doc["car_model"]
-            if "car_year" in review_doc:
-                review_obj.car_year = review_doc["car_year"]
+            review_obj = DealerReview(review["dealership"], review["name"], review["purchase"], review["review"])
+
+            if "purchase_date" in review:
+                review_obj.purchase_date = review["purchase_date"]
+            if "car_make" in review:
+                review_obj.car_make = review["car_make"]
+            if "car_model" in review:
+                review_obj.car_model = review["car_model"]
+            if "car_year" in review:
+                review_obj.car_year = review["car_year"]
             review_obj.sentiment = analyze_review_sentiments(review_obj.review)
-            if "id" in review_doc:
-                review_obj.review_id = review_doc["id"]
-            results.append(dealer_obj)
+            if "id" in review:
+                review_obj.review_id = review["id"]
+            results.append(review_obj)
 
     return results
 

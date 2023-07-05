@@ -21,7 +21,7 @@
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">Navigation Bar</a>
+                <a class="navbar-brand" href="#">Dealership Review</a>
             </div>
             <ul class="nav navbar-nav">
                 <li>
@@ -58,7 +58,7 @@
     {% endif %}
     <!--Add a dealer table here -->
 
-    <table id="table" class="table">
+    <table id="table" class="table" data-filter-control="true">
         <thead>
             <tr>
                 <th data-field="id">ID</th>
@@ -84,5 +84,11 @@
     </table>
 
 </body>
+
+    <script>
+    $(function() {
+      $('#table').bootstrapTable()
+    })
+    </script>
 
 </html>
