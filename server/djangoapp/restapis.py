@@ -42,10 +42,7 @@ def get_request(url, **kwargs):
 def post_request(url, json_payload, **kwargs):
     print(kwargs)
     print("POST to {} ".format(url))
-    try:
-        response = requests.post(url, params=kwargs, json=payload)
-    except:
-        print("Network exception occurred")
+    response = requests.post(url, params=kwargs, json=json_payload)
     status_code = response.status_code
     print("With status {} ".format(status_code))
     json_data = json.loads(response.text)

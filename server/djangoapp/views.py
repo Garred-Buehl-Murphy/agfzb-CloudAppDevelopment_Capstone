@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
 # from .models import related models
-from .models import CarDealer, DealerReview
+from .models import CarDealer, DealerReview, CarModel, CarMake
 # from .restapis import related methods
 from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request
 from django.contrib.auth import login, logout, authenticate
@@ -125,35 +125,37 @@ def add_review(request, dealer_id):
     if request.user.is_authenticated:
         url2 = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/get-dealership"
         dealer = get_dealers_from_cf(url2, dealer_id=dealer_id)
+        
         context = dict()
         context["dealer_id"] = dealer_id
         context["dealer"] = dealer
         
         if request.method == "GET":
-            cars = CarModel.objects.all()
+            cars = CarModel.objects.filter(dealer_id = dealer_id)
             context["cars"] = cars
             return render(request, 'djangoapp/add_review.html', context)
         if request.method == "POST":
             url = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/post-review"
             
-            json_payload = dict()
+            review_payload = dict()
 
             car_id = request.POST["car"]
             car = CarModel.objects.get(pk=car_id)
-
-            json_payload["name"] = username
-            json_payload["dealership"] = dealer_id
-            json_payload["review"] = request.POST["content"]
+            
+            review_payload["name"] = request.user.username
+            review_payload["dealership"] = dealer_id
+            review_payload["review"] = request.POST["review"]
+            #review_payload["id"] is not nessessary.
             if request.POST["purchased"] == 'on':
-                json_payload["purchase"] = True
-                json_payload["purchase_date"]
-                json_payload["car_make"]
-                json_payload["car_model"]
-                json_payload["car_year"]
-            else
-                json_payload["purchase"] = False
-
-
-            response = post_request(url, json_payload, id=dealer_id)
-            return HttpResponse(response)
-        
+                review_payload["purchase"] = True
+                review_payload["purchase_date"] = request.POST["purchase_date"]
+                review_payload["car_make"] = car.car_make.name
+                review_payload["car_model"] = car.name
+                review_payload["car_year"] = car.year.year
+            else:
+                review_payload["purchase"] = False
+            final_payload = dict()
+            final_payload['review'] = review_payload
+            response = post_request(url, final_payload)
+            return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
+            return HttpResponse(final_payload)
