@@ -25,7 +25,6 @@ def about(request):
     if request.method == "GET":
         return render(request, 'djangoapp/about.html', context)
 
-
 # Create a `contact` view to return a static contact page
 def contact(request):
     context = {}
@@ -100,7 +99,6 @@ def get_dealerships(request):
         context["dealerships"] = dealerships        
         return render(request, 'djangoapp/index.html', context)
 
-
 # Create a `get_dealer_details` view to render the reviews of a dealer
 # def get_dealer_details(request, dealer_id):
 # ...
@@ -125,23 +123,18 @@ def add_review(request, dealer_id):
     if request.user.is_authenticated:
         url2 = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/get-dealership"
         dealer = get_dealers_from_cf(url2, dealer_id=dealer_id)
-        
         context = dict()
         context["dealer_id"] = dealer_id
         context["dealer"] = dealer
-        
         if request.method == "GET":
             cars = CarModel.objects.filter(dealer_id = dealer_id)
             context["cars"] = cars
             return render(request, 'djangoapp/add_review.html', context)
         if request.method == "POST":
             url = "https://us-south.functions.appdomain.cloud/api/v1/web/adf616e2-c029-4e08-bc72-d66c42006080/dealership-package/post-review"
-            
             review_payload = dict()
-
             car_id = request.POST["car"]
             car = CarModel.objects.get(pk=car_id)
-            
             review_payload["name"] = request.user.username
             review_payload["dealership"] = dealer_id
             review_payload["review"] = request.POST["review"]
@@ -158,4 +151,4 @@ def add_review(request, dealer_id):
             final_payload['review'] = review_payload
             response = post_request(url, final_payload)
             return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
-            return HttpResponse(final_payload)
+            #return HttpResponse(final_payload)
